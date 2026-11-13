@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tea with Miss Marple</title>
+<meta name="description" content="Converse with Miss Jane Marple of St. Mary Mead. A small language model runs entirely in your browser.">
+<meta name="theme-color" content="#efe8da" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1d1b17" media="(prefers-color-scheme: dark)">
+<!-- Link previews when the GitHub Pages URL is shared -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Tea with Miss Marple">
+<meta property="og:description" content="Converse with Miss Jane Marple of St. Mary Mead. The model runs entirely in your browser.">
+<meta name="twitter:card" content="summary">
+<!-- Inline favicon, so Pages doesn't serve a 404 for /favicon.ico -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%AB%96%3C/text%3E%3C/svg%3E">
+<!-- Open connections early to every host the page uses -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://huggingface.co" crossorigin>
+<link rel="dns-prefetch" href="https://cdn-lfs.hf.co">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #efe8da;
+    --bg-pattern: #e6dcc8;
+    --paper: #fbf7ee;
+    --paper-line: #e8ddc6;
+    --ink: #2e2a24;
+    --ink-soft: #6b6255;
+    --accent: #5f7a5a;          /* garden sage */
+    --accent-ink: #fbf7ee;
+    --rose: #a2564f;            /* faded chintz rose */
+    --visitor: #e3e9ee;         /* pale blue writing paper */
+    --visitor-ink: #26313a;
+    --border: #d4c6a8;
+    --shadow: 0 1px 2px rgba(60,45,20,.08), 0 6px 18px rgba(60,45,20,.08);
+    --track: #e2d7c0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1d1b17; --bg-pattern: #23201b; --paper: #2a2620; --paper-line: #353027;
+      --ink: #ece4d3; --ink-soft: #a89e8b; --accent: #8fae87; --accent-ink: #1d1b17;
+      --rose: #d58b82; --visitor: #27303a; --visitor-ink: #dfe7ee; --border: #4a4234;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25); --track: #3a342b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1d1b17; --bg-pattern: #23201b; --paper: #2a2620; --paper-line: #353027;
+    --ink: #ece4d3; --ink-soft: #a89e8b; --accent: #8fae87; --accent-ink: #1d1b17;
+    --rose: #d58b82; --visitor: #27303a; --visitor-ink: #dfe7ee; --border: #4a4234;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25); --track: #3a342b;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--bg-pattern) 1.2px, transparent 1.2px);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: "EB Garamond", Georgia, "Times New Roman", serif;
+    font-size: 18px;
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px 40px; }
+
+  header { text-align: center; margin-bottom: 20px; }
+  .flourish { color: var(--rose); letter-spacing: .5em; font-size: 14px; }
+  h1 { font-weight: 500; font-size: clamp(30px, 6vw, 42px); margin: 4px 0 2px; letter-spacing: .01em; }
+  .sub { color: var(--ink-soft); font-style: italic; margin: 0; }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+  }
+
+  /* Download panel */
+  .setup { padding: 18px 20px; margin-bottom: 18px; }
+  .setup p { margin: 0 0 12px; }
+  .note { font-size: 16px; color: var(--ink-soft); }
+  .note strong { color: var(--ink); font-weight: 600; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  button {
+    font: inherit; font-size: 17px; cursor: pointer;
+    border-radius: 4px; padding: 8px 18px; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--accent-ink);
+  }
+  button.secondary { background: transparent; color: var(--ink-soft); border-color: var(--border); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button:focus-visible, textarea:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; }
+  .progress { flex: 1 1 220px; min-width: 0; }
+  .bar { height: 10px; background: var(--track); border-radius: 5px; overflow: hidden; }
+  .bar > div { height: 100%; width: 0%; background: var(--accent); transition: width .2s ease; }
+  .status { font-size: 15px; color: var(--ink-soft); margin-top: 4px; overflow-wrap: anywhere; }
+  .badge { font-size: 14px; color: var(--ink-soft); border: 1px solid var(--border); border-radius: 999px; padding: 1px 10px; }
+
+  /* Chat */
+  .chat { display: flex; flex-direction: column; height: min(64vh, 640px); min-height: 380px; }
+  .chat-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 15px; color: var(--ink-soft);
+  }
+  .chat-head .title { font-style: italic; }
+  .log { flex: 1; overflow-y: auto; padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; }
+  .msg { max-width: 88%; padding: 12px 16px; border-radius: 4px; overflow-wrap: anywhere; }
+  .msg p { margin: 0 0 .6em; }
+  .msg p:last-child { margin-bottom: 0; }
+  .msg .who { display: block; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 4px; font-style: normal; }
+  .marple {
+    align-self: flex-start;
+    background: var(--paper);
+    background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--paper-line) 27px, var(--paper-line) 28px);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--rose);
+  }
+  .visitor { align-self: flex-end; background: var(--visitor); color: var(--visitor-ink); border: 1px solid var(--border); }
+  .typing::after { content: "▍"; color: var(--rose); animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  form { display: flex; gap: 10px; padding: 12px 16px 16px; border-top: 1px solid var(--border); align-items: flex-end; }
+  textarea {
+    flex: 1; min-width: 0; resize: none; font: inherit; font-size: 17px; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px; max-height: 140px;
+  }
+  footer { text-align: center; font-size: 14px; color: var(--ink-soft); margin-top: 14px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="flourish" aria-hidden="true">❦ ❦ ❦</div>
+    <h1>Tea with Miss Marple</h1>
+    <p class="sub">Danemead, St. Mary Mead · Callers welcome in the afternoons</p>
+  </header>
+
+  <section class="card setup" aria-labelledby="setup-title">
+    <p id="setup-title" class="note">
+      <strong>Before you call.</strong> Miss Marple is played by a small language model that runs
+      <strong>entirely on your own device</strong>. The first visit downloads it once
+      (<strong>about 1&nbsp;GB</strong>); your browser keeps it, so later visits start in moments.
+      Nothing you write is sent to any server. A recent Chrome or Edge with WebGPU is fastest;
+      other browsers fall back to a slower mode.
+    </p>
+    <div class="row">
+      <button id="load">Download model</button>
+      <div class="progress">
+        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Model download"><div id="bar"></div></div>
+        <div class="status" id="status">Not yet downloaded.</div>
+      </div>
+      <span class="badge hidden" id="device"></span>
+    </div>
+    <noscript><p class="note" style="margin:12px 0 0">This page needs JavaScript to run the model.</p></noscript>
+  </section>
+
+  <section class="card chat" aria-label="Conversation with Miss Marple">
+    <div class="chat-head">
+      <span class="title">In the sitting room, over tea</span>
+      <button class="secondary" id="clear" type="button" style="padding:2px 12px;font-size:15px">Start afresh</button>
+    </div>
+    <div class="log" id="log" aria-live="polite"></div>
+    <form id="form">
+      <label for="input" class="hidden">Your message</label>
+      <textarea id="input" rows="2" placeholder="Download the model first…" disabled></textarea>
+      <button id="send" type="submit" disabled>Send</button>
+      <button id="stop" type="button" class="secondary hidden">Stop</button>
+    </form>
+  </section>
+  <footer>Runs in your browser with Transformers.js · Llama 3.2 1B Instruct (4-bit)</footer>
+</div>
+
+<!-- The model runs in a Web Worker so the page stays responsive. -->
+<script id="worker-src" type="text/plain">
+import { pipeline, TextStreamer, InterruptableStoppingCriteria, env }
+  from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2";
+
+env.allowLocalModels = false;   // always fetch from the Hub, cached by the browser after the first time
+env.useBrowserCache = true;
+
+const MODEL_ID = "onnx-community/Llama-3.2-1B-Instruct";
+let generator = null;
+const stopper = new InterruptableStoppingCriteria();
+
+async function pickDevice() {
+  try {
+    if (!navigator.gpu) return { device: "wasm", dtype: "q4" };
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) return { device: "wasm", dtype: "q4" };
+    // q4f16 is smaller and faster but needs fp16 shader support
+    return { device: "webgpu", dtype: adapter.features.has("shader-f16") ? "q4f16" : "q4" };
+  } catch { return { device: "wasm", dtype: "q4" }; }
+}
+
+const files = new Map();
+function onProgress(p) {
+  if (p.status === "progress" || p.status === "done") {
+    const prev = files.get(p.file) || { loaded: 0, total: 0 };
+    files.set(p.file, {
+      loaded: p.status === "done" ? (prev.total || p.loaded || 0) : p.loaded,
+      total: p.total ?? prev.total,
+    });
+    let loaded = 0, total = 0;
+    for (const f of files.values()) { loaded += f.loaded || 0; total += f.total || 0; }
+    self.postMessage({ type: "progress", loaded, total, file: p.file });
+  }
+}
+
+async function load() {
+  let choice = await pickDevice();
+  try {
+    generator = await pipeline("text-generation", MODEL_ID, { ...choice, progress_callback: onProgress });
+  } catch (err) {
+    if (choice.device !== "webgpu") throw err;
+    self.postMessage({ type: "status", text: "WebGPU unavailable here — falling back to WASM…" });
+    files.clear();
+    choice = { device: "wasm", dtype: "q4" };
+    generator = await pipeline("text-generation", MODEL_ID, { ...choice, progress_callback: onProgress });
+  }
+  // Warm-up compiles the shaders so the first real reply isn't slow.
+  self.postMessage({ type: "status", text: "Warming up…" });
+  await generator("Hello", { max_new_tokens: 1 });
+  self.postMessage({ type: "ready", device: choice.device, dtype: choice.dtype });
+}
+
+async function generate(messages) {
+  stopper.reset();
+  const streamer = new TextStreamer(generator.tokenizer, {
+    skip_prompt: true,
+    skip_special_tokens: true,
+    callback_function: (text) => self.postMessage({ type: "token", text }),
+  });
+  const out = await generator(messages, {
+    max_new_tokens: 260,
+    do_sample: true,
+    temperature: 0.75,
+    top_p: 0.9,
+    repetition_penalty: 1.12,
+    streamer,
+    stopping_criteria: stopper,
+  });
+  const reply = out[0].generated_text.at(-1).content;
+  self.postMessage({ type: "done", text: reply });
+}
+
+self.onmessage = async ({ data }) => {
+  try {
+    if (data.type === "load") await load();
+    else if (data.type === "generate") await generate(data.messages);
+    else if (data.type === "interrupt") stopper.interrupt();
+  } catch (err) {
+    self.postMessage({ type: "error", text: String(err?.message || err) });
+  }
+};
+</script>
+
+<script type="module">
+// ---------- Character ----------
+const SYSTEM_PROMPT = `You are Miss Jane Marple, an elderly spinster living in the English village of St. Mary Mead. Stay in character at all times. Never mention being an AI, a model or a character.
+
+Who you are: comfortably off but not rich. You garden, knit, write letters and pay calls. You know the parentage and disposition of nearly everyone in the village. Your nephew Raymond West is a successful novelist, fond of you and rather patronising; you allow it because it is useful. You have no training of any kind, only sixty-odd years of close observation. Your settled conclusion: people are not individually surprising. Types recur. Human nature in a village is human nature anywhere, only easier to see.
+
+How you speak:
+- Diffidently, with genuine qualifications: "I may be quite wrong", "you mustn't mind an old woman rambling", "it's only a fancy of mine".
+- You reach your point by way of a village anecdote that sounds beside the point: someone's gardener, a girl in service who told a particular kind of lie, the woman at the post office. Then, quietly, you apply it to the matter in hand.
+- Vague about where you are going, precise about where you land. Your last sentence states the point plainly.
+- You never raise your voice and never argue. You state the thing and let the other person see that you are right.
+- You are clear-eyed about wickedness and not at all shocked by it.
+- Your evidence comes from domestic detail: servants, housekeeping, the household accounts, who does the washing, because that is the layer nobody thinks to conceal.
+- You know the value of being underestimated and you never boast.
+
+Style: gentle, old-fashioned British English and British spelling. Reply in two or three short paragraphs. No lists, headings, modern slang or emoji. Ask at most one question.`;
+
+// A single example exchange anchors the voice far better than instructions alone.
+const EXAMPLE = [
+  { role: "user", content: "My business partner keeps telling me the accounts are fine, but he won't let me see them." },
+  { role: "assistant", content: "Oh dear. Well, I may be quite wrong, and you mustn't mind my saying so, but it does put me in mind of Mr. Hargreaves, who kept the chemist's shop by the church. He was so very particular about his books that nobody else was ever allowed to touch them, and everyone said what a careful, devoted man he was. His wife used to say so too. It was nearly two years before anyone noticed the new carpets.\n\nHonest accounts are rather dull, you know, and dull things are seldom guarded. A man who keeps a thing locked away generally has a reason for it. I should ask to see them, quite pleasantly, and watch what he does with his hands while you ask." },
+];
+
+const GREETING = "Do come in and sit down. I'll ring for some more hot water. Raymond tells me I've grown quite hopeless about modern life, and I dare say he's right, but people don't really change very much, do they? Now, what is it that's been troubling you?";
+
+// Keep context small: only the last few turns go to the model.
+const MAX_HISTORY_MESSAGES = 6;      // 3 exchanges
+const MAX_CHARS_PER_MESSAGE = 1200;
+
+// ---------- Elements ----------
+const $ = (id) => document.getElementById(id);
+const loadBtn = $("load"), barEl = $("bar"), barWrap = barEl.parentElement, statusEl = $("status"), deviceEl = $("device");
+const log = $("log"), form = $("form"), input = $("input"), sendBtn = $("send"), stopBtn = $("stop"), clearBtn = $("clear");
+
+let history = [];
+let busy = false, ready = false, current = null;
+
+// ---------- Rendering ----------
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function renderBody(text) {
+  return text.trim().split(/\n{2,}/).map((p) => `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`).join("");
+}
+function addMessage(who, text) {
+  const el = document.createElement("div");
+  el.className = `msg ${who}`;
+  el.innerHTML = `<span class="who">${who === "marple" ? "Miss Marple" : "You"}</span><div class="body">${renderBody(text)}</div>`;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  return el;
+}
+function reset() {
+  history = [];
+  log.innerHTML = "";
+  addMessage("marple", GREETING);
+}
+reset();
+
+function fmtMB(b) { return b >= 1e9 ? (b / 1e9).toFixed(2) + " GB" : Math.round(b / 1e6) + " MB"; }
+
+// ---------- Worker ----------
+const workerUrl = URL.createObjectURL(new Blob([$("worker-src").textContent], { type: "text/javascript" }));
+const worker = new Worker(workerUrl, { type: "module" });
+
+worker.onmessage = ({ data }) => {
+  switch (data.type) {
+    case "progress": {
+      const pct = data.total ? Math.min(100, (data.loaded / data.total) * 100) : 0;
+      barEl.style.width = pct.toFixed(1) + "%";
+      barWrap.setAttribute("aria-valuenow", Math.round(pct));
+      statusEl.textContent = `Downloading… ${fmtMB(data.loaded)} of ${fmtMB(data.total)} (${pct.toFixed(0)}%)`;
+      break;
+    }
+    case "status":
+      statusEl.textContent = data.text;
+      break;
+    case "ready":
+      ready = true;
+      barEl.style.width = "100%";
+      barWrap.setAttribute("aria-valuenow", 100);
+      statusEl.textContent = "Ready. The model is stored in your browser and runs on this device.";
+      loadBtn.textContent = "Loaded";
+      deviceEl.textContent = data.device === "webgpu" ? `WebGPU · ${data.dtype}` : `WASM · ${data.dtype} (slower)`;
+      deviceEl.classList.remove("hidden");
+      input.disabled = false; sendBtn.disabled = false;
+      input.placeholder = "Write to Miss Marple…";
+      input.focus();
+      break;
+    case "token":
+      if (current) {
+        current.text += data.text;
+        current.body.innerHTML = renderBody(current.text);
+        log.scrollTop = log.scrollHeight;
+      }
+      break;
+    case "done":
+      finishReply(data.text);
+      break;
+    case "error":
+      if (!ready) {
+        statusEl.textContent = "Something went wrong: " + data.text;
+        loadBtn.disabled = false; loadBtn.textContent = "Try again";
+      } else {
+        finishReply(current?.text || "");
+        addMessage("marple", "Oh dear, I seem to have lost my thread entirely. (" + data.text + ")");
+      }
+      break;
+  }
+};
+
+// Fires if the worker script itself can't load (e.g. the CDN is blocked or offline).
+worker.onerror = (e) => {
+  e.preventDefault?.();
+  statusEl.textContent = "Couldn't load the model library. Check your connection and try again.";
+  loadBtn.disabled = false; loadBtn.textContent = "Try again";
+};
+
+// ---------- Hosting checks (GitHub Pages and other static hosts) ----------
+// WebGPU and the Cache API only work on https or localhost. Pages serves https,
+// but opening the file directly or over plain http breaks both.
+if (!window.isSecureContext) {
+  statusEl.textContent = "Open this page over https (e.g. its GitHub Pages address) or localhost — the model can't run from a plain file or http link.";
+}
+
+// On repeat visits, tell the visitor the model is already stored so the button doesn't look like a 1 GB download.
+(async () => {
+  try {
+    if (!("caches" in window)) return;
+    const cache = await caches.open("transformers-cache");
+    const keys = await cache.keys();
+    if (keys.some((r) => r.url.includes("Llama-3.2-1B-Instruct") && r.url.endsWith(".onnx"))) {
+      loadBtn.textContent = "Load model";
+      statusEl.textContent = "Already downloaded on this device — loading takes a few seconds.";
+    }
+  } catch { /* cache unavailable (private window etc.): keep the default text */ }
+})();
+
+async function prepareStorage() {
+  if (!navigator.storage) return true;
+  // Ask the browser not to evict the ~1 GB model when space runs low, so it really is a one-time download.
+  try { await navigator.storage.persist?.(); } catch {}
+  try {
+    const { quota = Infinity, usage = 0 } = (await navigator.storage.estimate?.()) || {};
+    if (quota - usage < 1.4e9 && loadBtn.textContent.startsWith("Download")) {
+      return confirm(`Your browser reports only about ${fmtMB(quota - usage)} free for this site, and the model needs about 1 GB. Try anyway?`);
+    }
+  } catch {}
+  return true;
+}
+
+loadBtn.addEventListener("click", async () => {
+  if (!(await prepareStorage())) return;
+  loadBtn.disabled = true;
+  loadBtn.textContent = loadBtn.textContent === "Load model" ? "Loading…" : "Downloading…";
+  statusEl.textContent = "Starting… (if the model is already cached this will be quick)";
+  worker.postMessage({ type: "load" });
+});
+
+// ---------- Chat ----------
+function buildMessages() {
+  const recent = history.slice(-MAX_HISTORY_MESSAGES).map((m) => ({
+    role: m.role, content: m.content.slice(0, MAX_CHARS_PER_MESSAGE),
+  }));
+  // Chat templates expect the trimmed window to begin with a user turn.
+  while (recent.length && recent[0].role !== "user") recent.shift();
+  return [{ role: "system", content: SYSTEM_PROMPT }, ...EXAMPLE, ...recent];
+}
+
+function setBusy(b) {
+  busy = b;
+  sendBtn.classList.toggle("hidden", b);
+  stopBtn.classList.toggle("hidden", !b);
+  input.disabled = b;
+  clearBtn.disabled = b;
+}
+
+function finishReply(text) {
+  if (!current) return;
+  const final = (text || current.text).trim();
+  current.el.classList.remove("typing");
+  current.body.innerHTML = renderBody(final || "…");
+  if (final) history.push({ role: "assistant", content: final });
+  current = null;
+  setBusy(false);
+  input.focus();
+}
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text || busy || !ready) return;
+  input.value = "";
+  addMessage("visitor", text);
+  history.push({ role: "user", content: text });
+  if (history.length > MAX_HISTORY_MESSAGES * 2) history = history.slice(-MAX_HISTORY_MESSAGES);
+
+  const el = addMessage("marple", "");
+  el.classList.add("typing");
+  current = { el, body: el.querySelector(".body"), text: "" };
+  setBusy(true);
+  worker.postMessage({ type: "generate", messages: buildMessages() });
+});
+
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+});
+stopBtn.addEventListener("click", () => worker.postMessage({ type: "interrupt" }));
+clearBtn.addEventListener("click", () => { if (!busy) reset(); });
+</script>
+</body>
+</html>
